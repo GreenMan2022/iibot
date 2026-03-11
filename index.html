@@ -1,1 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Простой AI Бот (на ApiFreeLLM)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #f0f2f5 0%, #e6e9f0 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .header {
+            padding: 24px 28px;
+            background: rgba(255,255,255,0.4);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1a2639;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header p {
+            margin: 5px 0 0;
+            color: #2c3e50;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        .api-badge {
+            background: #1e2b3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 22px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .user-message {
+            background: #1e2b3c;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+        .bot-message {
+            background: white;
+            color: #1e2b3c;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .bot-message .model-badge {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-top: 6px;
+            display: block;
+        }
+        .input-area {
+            padding: 24px;
+            background: rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(0,0,0,0.08);
+            display: flex;
+            gap: 12px;
+        }
+        #userInput {
+            flex: 1;
+            padding: 16px 20px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 40px;
+            outline: none;
+            font-size: 1rem;
+            background: white;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        #userInput:focus {
+            border-color: #1e2b3c;
+            box-shadow: 0 4px 14px rgba(30,43,60,0.15);
+        }
+        #sendBtn {
+            background: #1e2b3c;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0 32px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 18px rgba(30,43,60,0.2);
+            letter-spacing: 0.3px;
+        }
+        #sendBtn:hover { background: #2c3e50; transform: scale(1.02); }
+        #sendBtn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .thinking {
+            display: flex;
+            gap: 6px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 26px;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            opacity: 0.9;
+        }
+        .thinking span {
+            width: 8px;
+            height: 8px;
+            background: #1e2b3c;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .thinking span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse { 0%, 60%, 100% { transform: scale(1); opacity: 0.6; } 30% { transform: scale(1.4); opacity: 1; } }
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 12px 18px;
+            border-radius: 16px;
+            align-self: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>⚡ AI Free Bot</h1>
+            <p>Простой чат на базе <strong>ApiFreeLLM</strong> · 200B+ модель</p>
+            <span class="api-badge">🔑 API ключ: apf_i6fhd1fenfma3zg2ceoaa5y5</span>
+        </div>
 
+        <div id="messages" class="messages-area">
+            <div class="message bot-message">
+                👋 Привет! Я бесплатный AI-бот. Задай любой вопрос!
+                <span class="model-badge">⚡ 200B+ model · безлимит</span>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Напиши сообщение..." autofocus>
+            <button id="sendBtn">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "apf_i6fhd1fenfma3zg2ceoaa5y5";
+        const API_URL = "https://apifreellm.com/v1/chat/completions"; // рабочий эндпоинт
+
+        const messagesDiv = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Добавление сообщения в чат
+        function addMessage(text, isUser = false, isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : (isError ? 'error-message' : 'bot-message')}`;
+            
+            if (!isUser && !isError) {
+                messageDiv.innerHTML = `${text}<span class="model-badge">⚡ ответ от ApiFreeLLM</span>`;
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // автоскролл
+        }
+
+        // Индикатор "печатает..."
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'thinking';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            messagesDiv.appendChild(indicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        // Основная функция отправки запроса к API
+        async function sendToAPI(userMessage) {
+            try {
+                showTypingIndicator();
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo", // или другая доступная модель, частая для совместимости
+                        messages: [
+                            { role: "system", content: "Ты полезный ассистент. Отвечай кратко и по делу." },
+                            { role: "user", content: userMessage }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 500
+                    })
+                });
+
+                removeTypingIndicator();
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Ошибка API (${response.status}): ${errorData}`);
+                }
+
+                const data = await response.json();
+                
+                // Извлекаем ответ (формат OpenAI-compatible)
+                let botReply = "Извините, не удалось получить ответ.";
+                if (data.choices && data.choices.length > 0) {
+                    botReply = data.choices[0].message.content;
+                } else if (data.response) { // fallback на случай другого формата
+                    botReply = data.response;
+                }
+                
+                addMessage(botReply, false);
+
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('Fetch error:', error);
+                addMessage(`❌ Ошибка: ${error.message}. Проверь ключ или попробуй позже.`, false, true);
+            } finally {
+                sendBtn.disabled = false;
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        // Обработчик отправки
+        function handleSend() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // Показываем сообщение пользователя
+            addMessage(message, true);
+            
+            // Блокируем поля на время запроса
+            sendBtn.disabled = true;
+            userInput.disabled = true;
+            userInput.value = '';
+
+            // Отправляем на API
+            sendToAPI(message);
+        }
+
+        // События
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Приветственное сообщение об использовании ключа (можно убрать)
+        console.log('🤖 Бот готов. Используется API ключ:', API_KEY);
+    </script>
+</body>
+</html>
