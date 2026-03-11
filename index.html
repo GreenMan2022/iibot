@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 AI Чат на ApiFreeLLM</title>
+    <title>🤖 AI Чат на ApiFreeLLM (с CORS-прокси)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -175,27 +175,27 @@
             border-radius: 16px;
             align-self: center;
         }
-        .timer-badge {
-            background: #1e293b;
-            color: white;
+        .cors-badge {
+            background: #854d0e;
+            color: #ffedd5;
             padding: 4px 12px;
             border-radius: 40px;
             font-size: 0.75rem;
-            font-family: monospace;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
-            <h1>⚡ Free AI Chat</h1>
-            <p>Работает через ApiFreeLLM · безлимитные сообщения · задержка 25с между запросами</p>
+            <h1>⚡ Free AI Chat <span class="cors-badge">CORS-прокси</span></h1>
+            <p>Работает через ApiFreeLLM · безлимитные сообщения · задержка 25с</p>
             <div class="api-key-badge">🔑 apf_i6fhd1fenfma3zg2ceoaa5y5</div>
         </div>
 
         <div id="messages" class="messages-area">
             <div class="message bot-message">
-                👋 Привет! Я использую бесплатный API. Задай любой вопрос.
+                👋 Привет! Я использую CORS-прокси для обхода ограничений API.
                 <div class="message-info">⚡ 200B+ model · rate limit: 25 сек</div>
             </div>
         </div>
@@ -211,11 +211,20 @@
     </div>
 
     <script>
-        // Конфигурация API (точно как в примере)
+        // Конфигурация
         const API_KEY = "apf_i6fhd1fenfma3zg2ceoaa5y5";
-        const API_URL = "https://apifreellm.com/api/v1/chat";  // правильный эндпоинт из примера
+        const API_URL = "https://apifreellm.com/api/v1/chat";
+        
+        // Публичные CORS-прокси (если один упадет, используем другой)
+        const CORS_PROXIES = [
+            "https://corsproxy.io/?",
+            "https://api.allorigins.win/raw?url=",
+            "https://cors-anywhere.herokuapp.com/"
+        ];
+        
+        // Выбираем случайный прокси для распределения нагрузки
+        const CORS_PROXY = CORS_PROXIES[Math.floor(Math.random() * CORS_PROXIES.length)];
 
-        // Элементы DOM
         const messagesDiv = document.getElementById('messages');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -223,15 +232,13 @@
 
         let isWaitingForResponse = false;
         let lastRequestTime = 0;
-        const RATE_LIMIT_SECONDS = 25; // как указано в документации
+        const RATE_LIMIT_SECONDS = 25;
 
-        // Добавление сообщения в чат
         function addMessage(text, isUser = false, isError = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user-message' : (isError ? 'error-message' : 'bot-message')}`;
             
             if (!isUser && !isError) {
-                // Сообщение бота с информацией о модели
                 messageDiv.innerHTML = `
                     ${text}
                     <div class="message-info">
@@ -248,7 +255,6 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // Индикатор печати
         function showTypingIndicator() {
             const indicator = document.createElement('div');
             indicator.className = 'typing-indicator';
@@ -263,7 +269,6 @@
             if (indicator) indicator.remove();
         }
 
-        // Обновление статуса rate limit
         function updateRateLimitStatus() {
             const now = Date.now();
             const timeSinceLastRequest = (now - lastRequestTime) / 1000;
@@ -274,7 +279,6 @@
                 rateLimitNotice.textContent = `⏳ Rate limit: подождите ${remainingTime} сек. перед следующим запросом`;
                 sendBtn.disabled = true;
                 
-                // Обновляем каждую секунду
                 setTimeout(updateRateLimitStatus, 1000);
             } else {
                 rateLimitNotice.style.display = 'none';
@@ -284,7 +288,6 @@
             }
         }
 
-        // Отправка запроса к API (точно как в Python-примере)
         async function sendToAPI(userMessage) {
             try {
                 isWaitingForResponse = true;
@@ -293,14 +296,20 @@
                 
                 showTypingIndicator();
 
-                // Формируем запрос ТОЧНО как в примере
+                // Подготавливаем запрос
                 const requestBody = {
-                    message: userMessage  // просто поле message, как в примере Python
+                    message: userMessage
                 };
 
-                console.log('Отправка запроса:', requestBody); // для отладки
+                // Кодируем URL для прокси
+                const encodedApiUrl = encodeURIComponent(API_URL);
+                const proxyUrl = CORS_PROXY + encodedApiUrl;
 
-                const response = await fetch(API_URL, {
+                console.log('Используем прокси:', CORS_PROXY);
+                console.log('Отправка запроса:', requestBody);
+
+                // Отправляем через CORS-прокси
+                const response = await fetch(proxyUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,9 +326,9 @@
                 }
 
                 const data = await response.json();
-                console.log('Ответ API:', data); // для отладки
+                console.log('Ответ API:', data);
 
-                // Извлекаем ответ (формат может быть разным)
+                // Извлекаем ответ
                 let botReply = "Получен пустой ответ";
                 
                 if (typeof data === 'string') {
@@ -333,37 +342,39 @@
                 } else if (data.choices && data.choices[0]) {
                     botReply = data.choices[0].message?.content || data.choices[0].text;
                 } else {
-                    // Если не можем распарсить, покажем весь ответ для отладки
-                    botReply = "Ответ получен, но в неожиданном формате. Проверь консоль (F12).";
-                    console.log('Необработанный ответ:', data);
+                    botReply = "Ответ получен в неожиданном формате: " + JSON.stringify(data);
                 }
 
                 addMessage(botReply, false);
 
-                // Обновляем время последнего запроса и активируем rate limit
                 lastRequestTime = Date.now();
                 updateRateLimitStatus();
 
             } catch (error) {
                 removeTypingIndicator();
                 console.error('Ошибка:', error);
-                addMessage(`Ошибка соединения: ${error.message}`, false, true);
+                
+                let errorMessage = error.message;
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = 'Не удалось подключиться к API. Проблема с CORS или прокси. Попробуйте другой браузер или включите CORS-расширение.';
+                }
+                
+                addMessage(`Ошибка: ${errorMessage}`, false, true);
+                
+                // Предлагаем альтернативный метод
+                addMessage('💡 Совет: Установите расширение "CORS Unblock" для Chrome или "CORS Everywhere" для Firefox и отключите прокси', false, true);
             } finally {
                 isWaitingForResponse = false;
                 userInput.disabled = false;
                 userInput.focus();
-                
-                // Проверяем rate limit перед разблокировкой кнопки
                 updateRateLimitStatus();
             }
         }
 
-        // Обработчик отправки
         async function handleSend() {
             const message = userInput.value.trim();
             if (message === '' || isWaitingForResponse) return;
 
-            // Проверяем rate limit
             const now = Date.now();
             const timeSinceLastRequest = (now - lastRequestTime) / 1000;
             
@@ -374,28 +385,19 @@
                 return;
             }
 
-            // Добавляем сообщение пользователя
             addMessage(message, true);
-            
-            // Очищаем поле
             userInput.value = '';
-
-            // Отправляем на API
             await sendToAPI(message);
         }
 
-        // События
         sendBtn.addEventListener('click', handleSend);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSend();
         });
 
-        // Проверяем rate limit при загрузке
         updateRateLimitStatus();
-
-        // Информация в консоль
-        console.log('✅ Чат готов. API Key:', API_KEY);
-        console.log('⚠️ Rate limit: 25 секунд между запросами');
+        
+        console.log('✅ Чат готов. Используется CORS-прокси:', CORS_PROXY);
     </script>
 </body>
 </html>
