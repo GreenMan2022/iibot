@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Простой AI Бот (на ApiFreeLLM)</title>
+    <title>🤖 AI Чат на ApiFreeLLM</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         body {
-            background: linear-gradient(145deg, #f0f2f5 0%, #e6e9f0 100%);
+            background: linear-gradient(145deg, #f6f8fc 0%, #e9ecf3 100%);
             height: 100vh;
             margin: 0;
             display: flex;
@@ -19,46 +19,42 @@
         }
         .chat-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             height: 90vh;
-            background: rgba(255,255,255,0.75);
-            backdrop-filter: blur(15px);
-            border-radius: 32px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.5);
         }
         .header {
-            padding: 24px 28px;
-            background: rgba(255,255,255,0.4);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 22px 28px;
+            background: #1a2b3e;
+            color: white;
         }
         .header h1 {
             margin: 0;
             font-size: 1.8rem;
             font-weight: 600;
-            color: #1a2639;
-            letter-spacing: -0.5px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .header p {
-            margin: 5px 0 0;
-            color: #2c3e50;
+            margin: 6px 0 0;
             opacity: 0.8;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
-        .api-badge {
-            background: #1e2b3c;
-            color: white;
-            padding: 4px 12px;
+        .api-key-badge {
+            background: #2d3f57;
+            padding: 6px 14px;
             border-radius: 40px;
-            font-size: 0.8rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-top: 12px;
             display: inline-block;
-            margin-top: 8px;
+            border: 1px solid #4a5f7a;
         }
         .messages-area {
             flex: 1;
@@ -66,101 +62,111 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            scroll-behavior: smooth;
+            gap: 18px;
+            background: #f9fafc;
         }
         .message {
             max-width: 80%;
-            padding: 14px 18px;
+            padding: 14px 20px;
             border-radius: 22px;
             line-height: 1.5;
             word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .user-message {
-            background: #1e2b3c;
+            background: #1a2b3e;
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 6px;
         }
         .bot-message {
             background: white;
-            color: #1e2b3c;
+            color: #1e293b;
             align-self: flex-start;
             border-bottom-left-radius: 6px;
-            border: 1px solid rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.07);
         }
-        .bot-message .model-badge {
+        .message-info {
             font-size: 0.7rem;
             opacity: 0.6;
             margin-top: 6px;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rate-limit-note {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin: 10px 0;
+            align-self: center;
+            display: inline-block;
         }
         .input-area {
-            padding: 24px;
-            background: rgba(255,255,255,0.6);
+            padding: 22px 24px;
+            background: white;
             border-top: 1px solid rgba(0,0,0,0.08);
             display: flex;
             gap: 12px;
         }
         #userInput {
             flex: 1;
-            padding: 16px 20px;
-            border: 1px solid rgba(0,0,0,0.1);
+            padding: 16px 22px;
+            border: 2px solid #e2e8f0;
             border-radius: 40px;
             outline: none;
             font-size: 1rem;
-            background: white;
             transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            background: #f8fafc;
         }
         #userInput:focus {
-            border-color: #1e2b3c;
-            box-shadow: 0 4px 14px rgba(30,43,60,0.15);
+            border-color: #1a2b3e;
+            background: white;
         }
         #sendBtn {
-            background: #1e2b3c;
+            background: #1a2b3e;
             color: white;
             border: none;
             border-radius: 40px;
-            padding: 0 32px;
+            padding: 0 36px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            box-shadow: 0 8px 18px rgba(30,43,60,0.2);
-            letter-spacing: 0.3px;
+            box-shadow: 0 10px 20px -8px #1a2b3e;
         }
-        #sendBtn:hover { background: #2c3e50; transform: scale(1.02); }
+        #sendBtn:hover { background: #2d3f57; transform: scale(1.02); }
         #sendBtn:disabled {
-            background: #a0aec0;
-            cursor: not-allowed;
-            transform: none;
+            background: #94a3b8;
             box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
         }
-        .thinking {
+        .typing-indicator {
             display: flex;
             gap: 6px;
-            padding: 16px 20px;
+            padding: 16px 22px;
             background: white;
             border-radius: 26px;
             align-self: flex-start;
             border-bottom-left-radius: 6px;
-            opacity: 0.9;
+            border: 1px solid rgba(0,0,0,0.07);
         }
-        .thinking span {
-            width: 8px;
-            height: 8px;
-            background: #1e2b3c;
+        .typing-indicator span {
+            width: 9px;
+            height: 9px;
+            background: #1a2b3e;
             border-radius: 50%;
             display: inline-block;
-            animation: pulse 1.2s infinite ease-in-out;
+            animation: bounce 1.4s infinite;
         }
-        .thinking span:nth-child(2) { animation-delay: 0.2s; }
-        .thinking span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse { 0%, 60%, 100% { transform: scale(1); opacity: 0.6; } 30% { transform: scale(1.4); opacity: 1; } }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
         .error-message {
             background: #fee2e2;
             color: #b91c1c;
@@ -168,38 +174,56 @@
             padding: 12px 18px;
             border-radius: 16px;
             align-self: center;
-            font-size: 0.9rem;
+        }
+        .timer-badge {
+            background: #1e293b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
-            <h1>⚡ AI Free Bot</h1>
-            <p>Простой чат на базе <strong>ApiFreeLLM</strong> · 200B+ модель</p>
-            <span class="api-badge">🔑 API ключ: apf_i6fhd1fenfma3zg2ceoaa5y5</span>
+            <h1>⚡ Free AI Chat</h1>
+            <p>Работает через ApiFreeLLM · безлимитные сообщения · задержка 25с между запросами</p>
+            <div class="api-key-badge">🔑 apf_i6fhd1fenfma3zg2ceoaa5y5</div>
         </div>
 
         <div id="messages" class="messages-area">
             <div class="message bot-message">
-                👋 Привет! Я бесплатный AI-бот. Задай любой вопрос!
-                <span class="model-badge">⚡ 200B+ model · безлимит</span>
+                👋 Привет! Я использую бесплатный API. Задай любой вопрос.
+                <div class="message-info">⚡ 200B+ model · rate limit: 25 сек</div>
             </div>
         </div>
 
+        <div id="rateLimitNotice" class="rate-limit-note" style="display: none;">
+            ⏳ Пожалуйста, подождите 25 секунд перед следующим запросом
+        </div>
+
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Напиши сообщение..." autofocus>
+            <input type="text" id="userInput" placeholder="Твое сообщение..." autofocus>
             <button id="sendBtn">Отправить</button>
         </div>
     </div>
 
     <script>
+        // Конфигурация API (точно как в примере)
         const API_KEY = "apf_i6fhd1fenfma3zg2ceoaa5y5";
-        const API_URL = "https://apifreellm.com/v1/chat/completions"; // рабочий эндпоинт
+        const API_URL = "https://apifreellm.com/api/v1/chat";  // правильный эндпоинт из примера
 
+        // Элементы DOM
         const messagesDiv = document.getElementById('messages');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
+        const rateLimitNotice = document.getElementById('rateLimitNotice');
+
+        let isWaitingForResponse = false;
+        let lastRequestTime = 0;
+        const RATE_LIMIT_SECONDS = 25; // как указано в документации
 
         // Добавление сообщения в чат
         function addMessage(text, isUser = false, isError = false) {
@@ -207,19 +231,27 @@
             messageDiv.className = `message ${isUser ? 'user-message' : (isError ? 'error-message' : 'bot-message')}`;
             
             if (!isUser && !isError) {
-                messageDiv.innerHTML = `${text}<span class="model-badge">⚡ ответ от ApiFreeLLM</span>`;
+                // Сообщение бота с информацией о модели
+                messageDiv.innerHTML = `
+                    ${text}
+                    <div class="message-info">
+                        ⚡ ответ от ApiFreeLLM · 200B+ model
+                    </div>
+                `;
+            } else if (isError) {
+                messageDiv.textContent = `❌ ${text}`;
             } else {
                 messageDiv.textContent = text;
             }
             
             messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight; // автоскролл
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // Индикатор "печатает..."
+        // Индикатор печати
         function showTypingIndicator() {
             const indicator = document.createElement('div');
-            indicator.className = 'thinking';
+            indicator.className = 'typing-indicator';
             indicator.id = 'typingIndicator';
             indicator.innerHTML = '<span></span><span></span><span></span>';
             messagesDiv.appendChild(indicator);
@@ -231,73 +263,125 @@
             if (indicator) indicator.remove();
         }
 
-        // Основная функция отправки запроса к API
+        // Обновление статуса rate limit
+        function updateRateLimitStatus() {
+            const now = Date.now();
+            const timeSinceLastRequest = (now - lastRequestTime) / 1000;
+            
+            if (timeSinceLastRequest < RATE_LIMIT_SECONDS && lastRequestTime !== 0) {
+                const remainingTime = Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastRequest);
+                rateLimitNotice.style.display = 'block';
+                rateLimitNotice.textContent = `⏳ Rate limit: подождите ${remainingTime} сек. перед следующим запросом`;
+                sendBtn.disabled = true;
+                
+                // Обновляем каждую секунду
+                setTimeout(updateRateLimitStatus, 1000);
+            } else {
+                rateLimitNotice.style.display = 'none';
+                if (!isWaitingForResponse) {
+                    sendBtn.disabled = false;
+                }
+            }
+        }
+
+        // Отправка запроса к API (точно как в Python-примере)
         async function sendToAPI(userMessage) {
             try {
-                showTypingIndicator();
+                isWaitingForResponse = true;
+                sendBtn.disabled = true;
+                userInput.disabled = true;
                 
+                showTypingIndicator();
+
+                // Формируем запрос ТОЧНО как в примере
+                const requestBody = {
+                    message: userMessage  // просто поле message, как в примере Python
+                };
+
+                console.log('Отправка запроса:', requestBody); // для отладки
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${API_KEY}`
                     },
-                    body: JSON.stringify({
-                        model: "gpt-3.5-turbo", // или другая доступная модель, частая для совместимости
-                        messages: [
-                            { role: "system", content: "Ты полезный ассистент. Отвечай кратко и по делу." },
-                            { role: "user", content: userMessage }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 500
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 removeTypingIndicator();
 
                 if (!response.ok) {
-                    const errorData = await response.text();
-                    throw new Error(`Ошибка API (${response.status}): ${errorData}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const data = await response.json();
+                console.log('Ответ API:', data); // для отладки
+
+                // Извлекаем ответ (формат может быть разным)
+                let botReply = "Получен пустой ответ";
                 
-                // Извлекаем ответ (формат OpenAI-compatible)
-                let botReply = "Извините, не удалось получить ответ.";
-                if (data.choices && data.choices.length > 0) {
-                    botReply = data.choices[0].message.content;
-                } else if (data.response) { // fallback на случай другого формата
+                if (typeof data === 'string') {
+                    botReply = data;
+                } else if (data.response) {
                     botReply = data.response;
+                } else if (data.message) {
+                    botReply = data.message;
+                } else if (data.content) {
+                    botReply = data.content;
+                } else if (data.choices && data.choices[0]) {
+                    botReply = data.choices[0].message?.content || data.choices[0].text;
+                } else {
+                    // Если не можем распарсить, покажем весь ответ для отладки
+                    botReply = "Ответ получен, но в неожиданном формате. Проверь консоль (F12).";
+                    console.log('Необработанный ответ:', data);
                 }
-                
+
                 addMessage(botReply, false);
+
+                // Обновляем время последнего запроса и активируем rate limit
+                lastRequestTime = Date.now();
+                updateRateLimitStatus();
 
             } catch (error) {
                 removeTypingIndicator();
-                console.error('Fetch error:', error);
-                addMessage(`❌ Ошибка: ${error.message}. Проверь ключ или попробуй позже.`, false, true);
+                console.error('Ошибка:', error);
+                addMessage(`Ошибка соединения: ${error.message}`, false, true);
             } finally {
-                sendBtn.disabled = false;
+                isWaitingForResponse = false;
                 userInput.disabled = false;
                 userInput.focus();
+                
+                // Проверяем rate limit перед разблокировкой кнопки
+                updateRateLimitStatus();
             }
         }
 
         // Обработчик отправки
-        function handleSend() {
+        async function handleSend() {
             const message = userInput.value.trim();
-            if (message === '') return;
+            if (message === '' || isWaitingForResponse) return;
 
-            // Показываем сообщение пользователя
+            // Проверяем rate limit
+            const now = Date.now();
+            const timeSinceLastRequest = (now - lastRequestTime) / 1000;
+            
+            if (timeSinceLastRequest < RATE_LIMIT_SECONDS && lastRequestTime !== 0) {
+                const remainingTime = Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastRequest);
+                rateLimitNotice.style.display = 'block';
+                rateLimitNotice.textContent = `⏳ Пожалуйста, подождите ${remainingTime} сек. (rate limit)`;
+                return;
+            }
+
+            // Добавляем сообщение пользователя
             addMessage(message, true);
             
-            // Блокируем поля на время запроса
-            sendBtn.disabled = true;
-            userInput.disabled = true;
+            // Очищаем поле
             userInput.value = '';
 
             // Отправляем на API
-            sendToAPI(message);
+            await sendToAPI(message);
         }
 
         // События
@@ -306,8 +390,12 @@
             if (e.key === 'Enter') handleSend();
         });
 
-        // Приветственное сообщение об использовании ключа (можно убрать)
-        console.log('🤖 Бот готов. Используется API ключ:', API_KEY);
+        // Проверяем rate limit при загрузке
+        updateRateLimitStatus();
+
+        // Информация в консоль
+        console.log('✅ Чат готов. API Key:', API_KEY);
+        console.log('⚠️ Rate limit: 25 секунд между запросами');
     </script>
 </body>
 </html>
