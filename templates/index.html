@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Чат на Flask</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель с информацией -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>🤖 AI Чат</h2>
+                <p>на Flask + ApiFreeLLM</p>
+            </div>
+            
+            <div class="api-info">
+                <div class="info-item">
+                    <span class="label">Статус API:</span>
+                    <span class="value online">● Онлайн</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Модель:</span>
+                    <span class="value">200B+</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Rate limit:</span>
+                    <span class="value">25 сек</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="clearChatBtn" class="btn btn-secondary">Очистить чат</button>
+                <button id="saveChatBtn" class="btn btn-primary">Сохранить историю</button>
+            </div>
+            
+            <div class="stats">
+                <h4>Статистика</h4>
+                <div id="stats">
+                    <p>Сообщений: <span id="messageCount">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная область чата -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>Чат с AI ассистентом</h3>
+                <div class="header-badge">apf_i6fhd1fenfma3zg2ceoaa5y5</div>
+            </div>
+            
+            <div class="messages-area" id="messages">
+                <div class="message bot">
+                    <div class="avatar">🤖</div>
+                    <div class="content">
+                        Привет! Я AI ассистент на базе ApiFreeLLM. Задай любой вопрос!
+                        <div class="timestamp">{{ now.strftime("%H:%M") }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <textarea 
+                    id="userInput" 
+                    placeholder="Введите сообщение..." 
+                    rows="1"
+                    oninput="autoResize(this)"
+                ></textarea>
+                <button id="sendBtn" class="btn-send">
+                    <span>➤</span>
+                </button>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
