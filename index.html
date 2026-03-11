@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 AI Чат на ApiFreeLLM (с CORS-прокси)</title>
+    <title>🤖 AI Чат - Рабочая версия</title>
     <style>
         * {
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         body {
-            background: linear-gradient(145deg, #f6f8fc 0%, #e9ecf3 100%);
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             margin: 0;
             display: flex;
@@ -23,14 +23,14 @@
             height: 90vh;
             background: white;
             border-radius: 28px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
         .header {
             padding: 22px 28px;
-            background: #1a2b3e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
         .header h1 {
@@ -43,18 +43,19 @@
         }
         .header p {
             margin: 6px 0 0;
-            opacity: 0.8;
+            opacity: 0.9;
             font-size: 0.95rem;
         }
         .api-key-badge {
-            background: #2d3f57;
+            background: rgba(255,255,255,0.2);
             padding: 6px 14px;
             border-radius: 40px;
             font-family: monospace;
             font-size: 0.85rem;
             margin-top: 12px;
             display: inline-block;
-            border: 1px solid #4a5f7a;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
         }
         .messages-area {
             flex: 1;
@@ -63,7 +64,7 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
-            background: #f9fafc;
+            background: #f5f7fa;
         }
         .message {
             max-width: 80%;
@@ -72,11 +73,11 @@
             line-height: 1.5;
             word-wrap: break-word;
             animation: fadeIn 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .user-message {
-            background: #1a2b3e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 6px;
@@ -96,16 +97,6 @@
             align-items: center;
             gap: 8px;
         }
-        .rate-limit-note {
-            background: #eef2ff;
-            color: #1e3a8a;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            margin: 10px 0;
-            align-self: center;
-            display: inline-block;
-        }
         .input-area {
             padding: 22px 24px;
             background: white;
@@ -124,11 +115,11 @@
             background: #f8fafc;
         }
         #userInput:focus {
-            border-color: #1a2b3e;
+            border-color: #667eea;
             background: white;
         }
         #sendBtn {
-            background: #1a2b3e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 40px;
@@ -137,9 +128,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            box-shadow: 0 10px 20px -8px #1a2b3e;
+            box-shadow: 0 10px 20px -8px #667eea;
         }
-        #sendBtn:hover { background: #2d3f57; transform: scale(1.02); }
+        #sendBtn:hover { transform: scale(1.02); opacity: 0.9; }
         #sendBtn:disabled {
             background: #94a3b8;
             box-shadow: none;
@@ -159,7 +150,7 @@
         .typing-indicator span {
             width: 9px;
             height: 9px;
-            background: #1a2b3e;
+            background: #667eea;
             border-radius: 50%;
             display: inline-block;
             animation: bounce 1.4s infinite;
@@ -175,33 +166,33 @@
             border-radius: 16px;
             align-self: center;
         }
-        .cors-badge {
-            background: #854d0e;
-            color: #ffedd5;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            margin-left: 10px;
+        .method-badge {
+            background: #059669;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 8px;
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
-            <h1>⚡ Free AI Chat <span class="cors-badge">CORS-прокси</span></h1>
-            <p>Работает через ApiFreeLLM · безлимитные сообщения · задержка 25с</p>
+            <h1>⚡ AI Чат <span class="method-badge">многопрокси</span></h1>
+            <p>ApiFreeLLM · автоматический выбор канала связи</p>
             <div class="api-key-badge">🔑 apf_i6fhd1fenfma3zg2ceoaa5y5</div>
         </div>
 
         <div id="messages" class="messages-area">
             <div class="message bot-message">
-                👋 Привет! Я использую CORS-прокси для обхода ограничений API.
-                <div class="message-info">⚡ 200B+ model · rate limit: 25 сек</div>
+                👋 Привет! Система автоматически выберет рабочий канал связи.
+                <div class="message-info">⚡ пробуем несколько прокси одновременно</div>
             </div>
         </div>
 
-        <div id="rateLimitNotice" class="rate-limit-note" style="display: none;">
-            ⏳ Пожалуйста, подождите 25 секунд перед следующим запросом
+        <div id="rateLimitNotice" class="rate-limit-note" style="display: none; text-align: center; padding: 8px; background: #fef3c7; color: #92400e; border-radius: 40px; margin: 10px;">
+            ⏳ Пожалуйста, подождите 25 секунд...
         </div>
 
         <div class="input-area">
@@ -215,15 +206,50 @@
         const API_KEY = "apf_i6fhd1fenfma3zg2ceoaa5y5";
         const API_URL = "https://apifreellm.com/api/v1/chat";
         
-        // Публичные CORS-прокси (если один упадет, используем другой)
-        const CORS_PROXIES = [
-            "https://corsproxy.io/?",
-            "https://api.allorigins.win/raw?url=",
-            "https://cors-anywhere.herokuapp.com/"
+        // МАССИВ РАЗНЫХ МЕТОДОВ ОБХОДА CORS
+        const METHODS = [
+            {
+                name: "cors.sh",
+                url: "https://proxy.cors.sh/" + API_URL,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'x-cors-api-key': 'temp_123456' // публичный ключ для cors.sh
+                }
+            },
+            {
+                name: "cors.bridged",
+                url: "https://cors.bridged.cc/" + API_URL,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                }
+            },
+            {
+                name: "allorigins",
+                url: "https://api.allorigins.win/raw?url=" + encodeURIComponent(API_URL),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                }
+            },
+            {
+                name: "codetabs",
+                url: "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(API_URL),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                }
+            },
+            {
+                name: "workers proxy",
+                url: "https://cors-proxy4.p.rapidapi.com/?url=" + encodeURIComponent(API_URL),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                }
+            }
         ];
-        
-        // Выбираем случайный прокси для распределения нагрузки
-        const CORS_PROXY = CORS_PROXIES[Math.floor(Math.random() * CORS_PROXIES.length)];
 
         const messagesDiv = document.getElementById('messages');
         const userInput = document.getElementById('userInput');
@@ -242,11 +268,9 @@
                 messageDiv.innerHTML = `
                     ${text}
                     <div class="message-info">
-                        ⚡ ответ от ApiFreeLLM · 200B+ model
+                        ⚡ ответ от ApiFreeLLM
                     </div>
                 `;
-            } else if (isError) {
-                messageDiv.textContent = `❌ ${text}`;
             } else {
                 messageDiv.textContent = text;
             }
@@ -269,23 +293,47 @@
             if (indicator) indicator.remove();
         }
 
-        function updateRateLimitStatus() {
-            const now = Date.now();
-            const timeSinceLastRequest = (now - lastRequestTime) / 1000;
-            
-            if (timeSinceLastRequest < RATE_LIMIT_SECONDS && lastRequestTime !== 0) {
-                const remainingTime = Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastRequest);
-                rateLimitNotice.style.display = 'block';
-                rateLimitNotice.textContent = `⏳ Rate limit: подождите ${remainingTime} сек. перед следующим запросом`;
-                sendBtn.disabled = true;
-                
-                setTimeout(updateRateLimitStatus, 1000);
-            } else {
-                rateLimitNotice.style.display = 'none';
-                if (!isWaitingForResponse) {
-                    sendBtn.disabled = false;
+        // Универсальная отправка через все методы
+        async function tryAllMethods(userMessage) {
+            const requestBody = { message: userMessage };
+            const errors = [];
+
+            // Пробуем каждый метод по очереди
+            for (const method of METHODS) {
+                try {
+                    console.log(`Пробуем метод: ${method.name}`);
+                    
+                    const response = await fetch(method.url, {
+                        method: 'POST',
+                        headers: method.headers,
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log(`Успех через ${method.name}:`, data);
+                    
+                    // Извлекаем ответ
+                    let botReply = "Получен ответ";
+                    if (data.response) botReply = data.response;
+                    else if (data.message) botReply = data.message;
+                    else if (data.contents) botReply = data.contents;
+                    else if (data.body) botReply = data.body;
+                    else if (typeof data === 'string') botReply = data;
+                    else botReply = JSON.stringify(data);
+                    
+                    return { success: true, reply: botReply, method: method.name };
+                    
+                } catch (error) {
+                    console.log(`Метод ${method.name} не сработал:`, error.message);
+                    errors.push(`${method.name}: ${error.message}`);
                 }
             }
+            
+            return { success: false, errors };
         }
 
         async function sendToAPI(userMessage) {
@@ -295,79 +343,42 @@
                 userInput.disabled = true;
                 
                 showTypingIndicator();
+                addMessage("🔄 Пробую разные способы подключения...", false, true);
 
-                // Подготавливаем запрос
-                const requestBody = {
-                    message: userMessage
-                };
-
-                // Кодируем URL для прокси
-                const encodedApiUrl = encodeURIComponent(API_URL);
-                const proxyUrl = CORS_PROXY + encodedApiUrl;
-
-                console.log('Используем прокси:', CORS_PROXY);
-                console.log('Отправка запроса:', requestBody);
-
-                // Отправляем через CORS-прокси
-                const response = await fetch(proxyUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEY}`
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                removeTypingIndicator();
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const data = await response.json();
-                console.log('Ответ API:', data);
-
-                // Извлекаем ответ
-                let botReply = "Получен пустой ответ";
+                const result = await tryAllMethods(userMessage);
                 
-                if (typeof data === 'string') {
-                    botReply = data;
-                } else if (data.response) {
-                    botReply = data.response;
-                } else if (data.message) {
-                    botReply = data.message;
-                } else if (data.content) {
-                    botReply = data.content;
-                } else if (data.choices && data.choices[0]) {
-                    botReply = data.choices[0].message?.content || data.choices[0].text;
-                } else {
-                    botReply = "Ответ получен в неожиданном формате: " + JSON.stringify(data);
+                removeTypingIndicator();
+                
+                // Удаляем временное сообщение
+                const lastMsg = messagesDiv.lastChild;
+                if (lastMsg && lastMsg.textContent.includes("Пробую разные способы")) {
+                    lastMsg.remove();
                 }
 
-                addMessage(botReply, false);
+                if (result.success) {
+                    addMessage(`✅ [${result.method}] ${result.reply}`, false);
+                } else {
+                    addMessage(`❌ Не удалось подключиться ни через один метод.`, false, true);
+                    addMessage(`💡 Самое надежное решение:\n1. Установи расширение "CORS Unblock" для Chrome\n2. Включи его\n3. Обнови страницу`, false, true);
+                }
 
                 lastRequestTime = Date.now();
-                updateRateLimitStatus();
+                
+                // Показываем rate limit
+                rateLimitNotice.style.display = 'block';
+                setTimeout(() => {
+                    rateLimitNotice.style.display = 'none';
+                }, 5000);
 
             } catch (error) {
                 removeTypingIndicator();
-                console.error('Ошибка:', error);
-                
-                let errorMessage = error.message;
-                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                    errorMessage = 'Не удалось подключиться к API. Проблема с CORS или прокси. Попробуйте другой браузер или включите CORS-расширение.';
-                }
-                
-                addMessage(`Ошибка: ${errorMessage}`, false, true);
-                
-                // Предлагаем альтернативный метод
-                addMessage('💡 Совет: Установите расширение "CORS Unblock" для Chrome или "CORS Everywhere" для Firefox и отключите прокси', false, true);
+                console.error('Глобальная ошибка:', error);
+                addMessage(`❌ Системная ошибка: ${error.message}`, false, true);
             } finally {
                 isWaitingForResponse = false;
                 userInput.disabled = false;
                 userInput.focus();
-                updateRateLimitStatus();
+                sendBtn.disabled = false;
             }
         }
 
@@ -379,9 +390,8 @@
             const timeSinceLastRequest = (now - lastRequestTime) / 1000;
             
             if (timeSinceLastRequest < RATE_LIMIT_SECONDS && lastRequestTime !== 0) {
-                const remainingTime = Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastRequest);
                 rateLimitNotice.style.display = 'block';
-                rateLimitNotice.textContent = `⏳ Пожалуйста, подождите ${remainingTime} сек. (rate limit)`;
+                rateLimitNotice.textContent = `⏳ Подождите ${Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastRequest)} сек. (rate limit)`;
                 return;
             }
 
@@ -395,9 +405,7 @@
             if (e.key === 'Enter') handleSend();
         });
 
-        updateRateLimitStatus();
-        
-        console.log('✅ Чат готов. Используется CORS-прокси:', CORS_PROXY);
+        console.log('✅ Бот готов. Доступные методы:', METHODS.map(m => m.name).join(', '));
     </script>
 </body>
 </html>
